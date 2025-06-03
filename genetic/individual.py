@@ -1,4 +1,4 @@
-from chromosome import Chromosome
+from .chromosome import Chromosome
 
 class Individual:
     """

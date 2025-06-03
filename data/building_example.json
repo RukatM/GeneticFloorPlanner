@@ -1,22 +1,25 @@
 {
     "building_constraints": [
         {"x": 1, "y": 1},
-        {"x": 8, "y": 1},
-        {"x": 8, "y": 3},
-        {"x": 4, "y": 3},
-        {"x": 4, "y": 9},
-        {"x": 1, "y": 9}
+        {"x": 20, "y": 1},  
+        {"x": 20, "y": 15},
+        {"x": 10, "y": 15},
+        {"x": 10, "y": 25},
+        {"x": 1, "y": 25}
     ],
     "entrances": [
-        {"x": 6, "y": 3}
+        {"x": 10, "y": 1} 
     ],
     "rooms": [
-        { "type": "classroom", "min_area": 2, "count": 3},
-        { "type": "toilet", "min_area": 1, "count": 2},
-        { "type": "hall", "min_area": 4, "count": 1 }
+        { "type": "classroom", "min_area": 30, "count": 3},  
+        { "type": "toilet", "min_area": 6, "count": 2},     
+        { "type": "hall", "min_area": 40, "count": 1 },     
+        { "type": "office", "min_area": 12, "count": 2},    
+        { "type": "secretary", "min_area": 15, "count": 1} 
     ],
     "adjacency_requirements": [
         ["classroom", "toilet"],
-        ["hall", "classroom"]
+        ["hall", "classroom"],
+        ["secretary", "office"]
     ]
 }
