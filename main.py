@@ -1,6 +1,7 @@
 import sys
 from inout.parser import parse_input_file
 from genetic.operators import initialize_population
+from genetic.evaluator import calculate_fitness
 
 def run_optimization():
     """
@@ -25,7 +26,9 @@ def run_optimization():
         for individual in population:
             for chromosome in individual.chromosomes:
                 print(chromosome)
-            print()
+            score = calculate_fitness(individual,config_data)
+            print("Fitness: ",score)
+            individual.fitness = score
 
     else:
         print("Population initialisation failed")
