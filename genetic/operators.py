@@ -3,6 +3,7 @@ import math
 from .chromosome import Chromosome
 from .individual import Individual
 
+
 def initialize_population(config_data, population_size):
     """
     Creates an initial population of individuals
@@ -10,6 +11,7 @@ def initialize_population(config_data, population_size):
 
     population = []
     room_definitions = config_data.get('rooms',[])
+    building_constraints = config_data.get('building_constraints',[])
 
     #temporary constraints
 
@@ -42,8 +44,8 @@ def initialize_population(config_data, population_size):
         new_individual = Individual(chromosomes=current_individual_chromosomes)
         population.append(new_individual)
 
-
     return population
+
 
 def tournament_selection(population, tournament_size):
     """
@@ -57,13 +59,14 @@ def tournament_selection(population, tournament_size):
     tournament = random.sample(population,tournament_size)
     return max(tournament,key = lambda individual : individual.fitness)
 
+
 def crossover(parent1,parent2):
     """
     Performs single-point crossover on two parents to create two children
     """
 
     if len(parent1.chromosomes) < 2:
-        return (Individual(chromosomes=parent1.chromosomes),Individual(chromosomes=parent2.chromosomes))
+        return Individual(chromosomes=parent1.chromosomes),Individual(chromosomes=parent2.chromosomes)
     
     crossover_point = random.randint(1, len(parent1.chromosomes) - 1)
     
@@ -76,7 +79,8 @@ def crossover(parent1,parent2):
     child1 = Individual(chromosomes=child1_chromosomes)
     child2 = Individual(chromosomes=child2_chromosomes)
 
-    return (child1,child2)
+    return child1,child2
+
 
 def mutate(individual, mutation_prob, config_data):
     """
@@ -112,6 +116,3 @@ def mutate(individual, mutation_prob, config_data):
                 
                 chromosome.width = max(1, chromosome.width)
                 chromosome.height = max(1, chromosome.height)
-
-
-
