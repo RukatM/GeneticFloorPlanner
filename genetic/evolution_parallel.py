@@ -39,8 +39,8 @@ def run_evolution_parallel(
     tournament_size,
     crossover_prob,
     mutation_prob,
-    elite_fraction=0.05,
-    early_stopping_rounds_fraction=0.1
+    elite_fraction=0.02,
+    early_stopping_rounds_fraction=0.15
 ):
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()

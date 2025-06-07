@@ -18,8 +18,8 @@ def run_evolution(
     tournament_size,
     crossover_prob,
     mutation_prob,
-    elite_fraction=0.05,
-    early_stopping_rounds_fraction=0.1
+    elite_fraction=0.02,
+    early_stopping_rounds_fraction=0.15
 ):
     print("Starting evolution...")
 

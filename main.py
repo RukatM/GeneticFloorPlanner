@@ -7,11 +7,11 @@ from inout.parser import parse_input_file
 from genetic.operators import initialize_population
 from visualization.gui import preview
 
-NUM_GENERATIONS = 200
-POPULATION_SIZE = 50
-TOURNAMENT_SIZE = 6
+NUM_GENERATIONS = 100
+POPULATION_SIZE = 500
+TOURNAMENT_SIZE = 4
 CROSSOVER_PROB = 0.8
-MUTATION_PROB = 0.5
+MUTATION_PROB = 0.6
 
 
 def main():
