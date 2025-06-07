@@ -5,7 +5,7 @@ from genetic.evolution import run_evolution
 from genetic.evolution_parallel import run_evolution_parallel
 from inout.parser import parse_input_file
 from genetic.operators import initialize_population
-from visualization.gui import preview
+from visualization.renderer import preview
 
 NUM_GENERATIONS = 500
 POPULATION_SIZE = 50
