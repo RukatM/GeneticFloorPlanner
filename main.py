@@ -14,6 +14,7 @@ def run_optimization(num_generations, population_size, tournament_size, crossove
     
     input_filepath = "data/building_example.json"
     config_data = parse_input_file(input_filepath)
+    building_constraints = config_data["building_constraints"]
 
     if not config_data:
         print("Error: Could not load configuration data. Exiting.")
@@ -22,7 +23,7 @@ def run_optimization(num_generations, population_size, tournament_size, crossove
     print("Configuration loaded successfully")
 
     print("Initializing population")
-    population = initialize_population(config_data, population_size)
+    population = initialize_population(config_data, population_size, building_constraints)
 
     if not population:
         print("Population initialisation failed")
@@ -63,7 +64,7 @@ def run_optimization(num_generations, population_size, tournament_size, crossove
             population = next_population
 
     best_individual = max(population, key=lambda ind: individual.fitness)
-    preview(best_individual, config_data['building_constraints'])
+    preview(best_individual, building_constraints)
 
         # for individual in population:
         #     for chromosome in individual.chromosomes:
