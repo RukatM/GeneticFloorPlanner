@@ -1,9 +1,11 @@
 import sys
+import random
+import copy
 from inout.parser import parse_input_file
-from genetic.operators import initialize_population
+from genetic.operators import initialize_population,tournament_selection,crossover,mutate
 from genetic.evaluator import calculate_fitness
 
-def run_optimization(num_generations,population_size):
+def run_optimization(num_generations,population_size,tournament_size,crossover_prob,mutation_prob):
     """
     Main function to run the genetic algorithm optimization.
     """
@@ -35,6 +37,32 @@ def run_optimization(num_generations,population_size):
             best_individual = max(population,key = lambda individual : individual.fitness)
             print(f"Generacja:{generation + 1} najlepszy osobnik: {best_individual}")
 
+            next_population = []
+            next_population.append(copy.deepcopy(best_individual))
+
+            while (len(next_population) < population_size):
+                parent1 = tournament_selection(population,tournament_size)
+                parent2 = tournament_selection(population,tournament_size)
+
+                attempts= 0
+                while parent1 is parent2 and attempts < 10:
+                    parent2 = tournament_selection(population,tournament_size)
+                    attempts += 1
+
+                if random.random() < crossover_prob:
+                    child1, child2 = crossover(parent1,parent2)
+                else:
+                    child1,child2 = parent1,parent2
+
+                mutate(child1, mutation_prob, config_data)
+                mutate(child2, mutation_prob, config_data)
+
+                next_population.append(child1)
+                if len(next_population) < population_size:
+                    next_population.append(child2)
+            population = next_population
+
+
 
         # for individual in population:
         #     for chromosome in individual.chromosomes:
@@ -44,4 +72,4 @@ def run_optimization(num_generations,population_size):
         #     individual.fitness = score
 
 if __name__ == "__main__":
-    run_optimization(100,5)
+    run_optimization(100,5,3,0.8,0.1)
