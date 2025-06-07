@@ -5,18 +5,18 @@ from inout.parser import parse_input_file
 from genetic.operators import initialize_population
 from visualization.gui import preview
 
-NUM_GENERATIONS = 200
+NUM_GENERATIONS = 500
 POPULATION_SIZE = 50
-TOURNAMENT_SIZE = 3
+TOURNAMENT_SIZE = 6
 CROSSOVER_PROB = 0.8
-MUTATION_PROB = 0.1
+MUTATION_PROB = 0.5
 
 
 def main():
     """
     Main function to run the genetic algorithm optimization.
     """
-    
+
     input_filepath = "data/building_example.json"
     config_data = parse_input_file(input_filepath)
     building_constraints = config_data["building_constraints"]
