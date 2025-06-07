@@ -17,7 +17,9 @@ def run_evolution(population, config_data, num_generations, population_size, tou
             individual.fitness = calculate_fitness(individual, config_data)
 
         best_individual = max(population, key=lambda ind: individual.fitness)
-        print(f"Generacja:{generation + 1} najlepszy osobnik: {best_individual}")
+        average_fitness = sum(ind.fitness for ind in population) / len(population)
+
+        print(f"Generation: {generation + 1}, average fitness: {average_fitness} best individual: {best_individual}")
 
         next_population = [copy.deepcopy(best_individual)]
 
