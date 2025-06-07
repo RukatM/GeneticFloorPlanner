@@ -11,11 +11,11 @@
         {"x": 10, "y": 1} 
     ],
     "rooms": [
-        { "type": "classroom", "min_area": 30, "count": 3},  
-        { "type": "toilet", "min_area": 6, "count": 2},     
-        { "type": "hall", "min_area": 40, "count": 1 },     
-        { "type": "office", "min_area": 12, "count": 2},    
-        { "type": "secretary", "min_area": 15, "count": 1} 
+        { "type": "classroom", "min_area": 30, "count": 3},
+        { "type": "toilet", "min_area": 6, "count": 2},
+        { "type": "hall", "min_area": 40, "count": 1 },
+        { "type": "office", "min_area": 12, "count": 2},
+        { "type": "secretary", "min_area": 15, "count": 1}
     ],
     "adjacency_requirements": [
         ["classroom", "toilet"],

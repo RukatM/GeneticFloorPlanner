@@ -46,18 +46,18 @@ def calculate_fitness(individual, config_data):
     # 1. Kolizje między pokojami
     for r1, r2 in combinations(chromosomes, 2):
         if check_collision(r1, r2):
-            score -= 100
+            score -= 200
 
     # 2. Spełnienie minimalnych powierzchni
     for room in chromosomes:
         if room.get_area() >= min_area.get(room.room_type, 0):
-            score += 40
+            score += 50
 
     # 3. Czy pokój mieści się w granicach budynku
     for room in chromosomes:
         room_box = box(room.x, room.y, room.x + room.width, room.y + room.height)
         if not building_poly.contains(room_box):
-            score -= 150
+            score -= 500
 
     # 4. Wymagania sąsiedztwa
     for type1, type2 in config_data.get('adjacency_requirements', []):
