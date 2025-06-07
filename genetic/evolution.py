@@ -16,7 +16,7 @@ def run_evolution(population, config_data, num_generations, population_size, tou
         for individual in population:
             individual.fitness = calculate_fitness(individual, config_data)
 
-        best_individual = max(population, key=lambda ind: individual.fitness)
+        best_individual = max(population, key=lambda ind: ind.fitness)
         average_fitness = sum(ind.fitness for ind in population) / len(population)
 
         print(f"Generation: {generation + 1}, average fitness: {average_fitness} best individual: {best_individual}")
@@ -37,8 +37,8 @@ def run_evolution(population, config_data, num_generations, population_size, tou
             else:
                 child1, child2 = parent1, parent2
 
-            mutate(child1, mutation_prob, config_data)
-            mutate(child2, mutation_prob, config_data)
+            mutate(child1, mutation_prob, config_data['building_constraints'])
+            mutate(child2, mutation_prob, config_data['building_constraints'])
 
             next_population.append(child1)
             if len(next_population) < population_size:

@@ -5,7 +5,7 @@ from inout.parser import parse_input_file
 from genetic.operators import initialize_population
 from visualization.gui import preview
 
-NUM_GENERATIONS = 100
+NUM_GENERATIONS = 200
 POPULATION_SIZE = 50
 TOURNAMENT_SIZE = 3
 CROSSOVER_PROB = 0.8
@@ -34,7 +34,7 @@ def main():
         print("Population initialisation failed")
         sys.exit(2)
     else:
-        print("Population succefully initialised")
+        print("Population successfully initialised")
 
     final_population = run_evolution(population, config_data, NUM_GENERATIONS, POPULATION_SIZE, TOURNAMENT_SIZE, CROSSOVER_PROB, MUTATION_PROB)
 

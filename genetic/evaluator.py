@@ -1,5 +1,4 @@
-from .individual import Individual
-from .chromosome import Chromosome
+
 
 def check_collision(room1,room2):
     """

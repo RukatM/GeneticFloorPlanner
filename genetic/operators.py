@@ -1,6 +1,8 @@
-import random
+import copy
 import math
 from matplotlib.path import Path
+from shapely.geometry import Polygon, box
+import random
 from .chromosome import Chromosome
 from .individual import Individual
 
@@ -78,7 +80,7 @@ def tournament_selection(population, tournament_size):
     return max(tournament,key = lambda individual : individual.fitness)
 
 
-def crossover(parent1,parent2):
+def crossover(parent1, parent2):
     """
     Performs single-point crossover on two parents to create two children
     """
@@ -91,8 +93,8 @@ def crossover(parent1,parent2):
     p1_chromosomes = list(parent1.chromosomes)
     p2_chromosomes = list(parent2.chromosomes)
 
-    child1_chromosomes = p1_chromosomes[:crossover_point] + p2_chromosomes[crossover_point:]
-    child2_chromosomes = p2_chromosomes[:crossover_point] + p1_chromosomes[crossover_point:]
+    child1_chromosomes = copy.deepcopy(p1_chromosomes[:crossover_point] + p2_chromosomes[crossover_point:])
+    child2_chromosomes = copy.deepcopy(p2_chromosomes[:crossover_point] + p1_chromosomes[crossover_point:])
 
     child1 = Individual(chromosomes=child1_chromosomes)
     child2 = Individual(chromosomes=child2_chromosomes)
@@ -100,37 +102,42 @@ def crossover(parent1,parent2):
     return child1,child2
 
 
-def mutate(individual, mutation_prob, config_data):
+def mutate(individual, mutation_prob, building_outline):
     """
-    Performs mutation on an individual
+    Performs mutation on an individual, ensuring chromosomes stay within the building shape.
     """
-
-    #temporary x y constraints
-    max_x= 50
-    max_y= 50
+    building_polygon = Polygon([(p['x'], p['y']) for p in building_outline])
 
     for chromosome in individual.chromosomes:
         if random.random() < mutation_prob:
-            mutation_type = random.choice(['position','size'])
+            mutation_type = random.choice(['position', 'size'])
+
+            original_x, original_y = chromosome.x, chromosome.y
+            original_width, original_height = chromosome.width, chromosome.height
 
             if mutation_type == 'position':
                 axis = random.choice(['x', 'y'])
                 change = random.choice([-1, 1])
-                
+
                 if axis == 'x':
                     chromosome.x += change
-                    chromosome.x = max(0, min(chromosome.x, max_x - chromosome.width))
-                else: 
+                else:
                     chromosome.y += change
-                    chromosome.y = max(0, min(chromosome.y, max_y - chromosome.height))
-            
+
             elif mutation_type == 'size':
                 dim_to_change = random.choice(['width', 'height'])
-                
+                change = random.choice([-1, 1])
+
                 if dim_to_change == 'width':
-                    chromosome.width += 1
-                else: 
-                    chromosome.height += 1
-                
-                chromosome.width = max(1, chromosome.width)
-                chromosome.height = max(1, chromosome.height)
+                    chromosome.width = max(1, chromosome.width + change)
+                else:
+                    chromosome.height = max(1, chromosome.height + change)
+
+            rect = box(chromosome.x, chromosome.y,
+                       chromosome.x + chromosome.width,
+                       chromosome.y + chromosome.height)
+
+            if not building_polygon.contains(rect):
+                chromosome.x, chromosome.y = original_x, original_y
+                chromosome.width, chromosome.height = original_width, original_height
+
