@@ -7,7 +7,7 @@ from inout.parser import parse_input_file
 from genetic.operators import initialize_population
 from visualization.gui import preview
 
-NUM_GENERATIONS = 500
+NUM_GENERATIONS = 200
 POPULATION_SIZE = 50
 TOURNAMENT_SIZE = 6
 CROSSOVER_PROB = 0.8
@@ -66,6 +66,7 @@ def main():
         best_individual = max(final_population, key=lambda individual: individual.fitness)
         preview(best_individual, building_constraints)
 
+    MPI.Finalize()
 
 if __name__ == "__main__":
     main()

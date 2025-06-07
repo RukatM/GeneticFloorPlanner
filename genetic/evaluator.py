@@ -1,7 +1,6 @@
 import math
 from itertools import combinations
 from shapely.geometry import Polygon, box
-from shapely.geometry.point import Point
 
 
 def check_collision(room1, room2):
