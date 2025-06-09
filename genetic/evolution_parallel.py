@@ -1,3 +1,4 @@
+import numpy as np
 from mpi4py import MPI
 import copy
 import random
@@ -5,30 +6,27 @@ import random
 from genetic.evaluator import calculate_fitness
 from genetic.operators import tournament_selection, crossover, mutate
 
+
 def evaluate_population_parallel(population, config_data, comm):
     rank = comm.Get_rank()
     size = comm.Get_size()
 
-    chunk_size = len(population) // size
-    extra = len(population) % size
-
-    if rank < extra:
-        start = rank * (chunk_size + 1)
-        end = start + chunk_size + 1
+    if rank == 0:
+        data = np.array_split(population, size)
     else:
-        start = rank * chunk_size + extra
-        end = start + chunk_size
+        data = None
 
-    local_chunk = population[start:end]
+    local_chunk = comm.scatter(data, root=0)
 
     for individual in local_chunk:
         individual.fitness = calculate_fitness(individual, config_data)
 
-    all_chunks = comm.allgather(local_chunk)
+    gathered_chunks = comm.gather(local_chunk, root=0)
 
-    new_population = [ind for chunk in all_chunks for ind in chunk]
-
-    return new_population
+    if rank == 0:
+        return [individual for chunk in gathered_chunks for individual in chunk]
+    else:
+        return None
 
 
 def run_evolution_parallel(
@@ -45,19 +43,20 @@ def run_evolution_parallel(
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
 
-    if rank == 0:
-        print("Starting parallel evolution...")
-
     best_fitness = float('-inf')
     stagnation_counter = 0
+    early_stopping_triggered = False
+
+    if rank == 0:
+        print("Starting parallel evolution...")
 
     for generation in range(num_generations):
         population = evaluate_population_parallel(population, config_data, comm)
 
-        population.sort(key=lambda ind: ind.fitness, reverse=True)
-        elites = population[:max(1, int(elite_fraction * population_size))]
-
         if rank == 0:
+            population.sort(key=lambda ind: ind.fitness, reverse=True)
+            elites = population[:max(1, int(elite_fraction * population_size))]
+
             if population[0].fitness > best_fitness:
                 best_fitness = population[0].fitness
                 stagnation_counter = 0
@@ -67,19 +66,19 @@ def run_evolution_parallel(
             avg_fitness = sum(ind.fitness for ind in population) / len(population)
             print(f"Generation {generation + 1}: avg = {avg_fitness:.4f}, best = {population[0].fitness:.4f}")
 
-        # Broadcast stagnation counter (early stopping logic)
-        stagnation_counter = comm.bcast(stagnation_counter if rank == 0 else None, root=0)
-        best_fitness = comm.bcast(best_fitness if rank == 0 else None, root=0)
-
-        if stagnation_counter >= int(num_generations * early_stopping_rounds_fraction):
-            if rank == 0:
+            if stagnation_counter >= int(num_generations * early_stopping_rounds_fraction):
+                early_stopping_triggered = True
                 print(f"Early stopping at generation {generation + 1} due to stagnation.")
+
+        early_stopping_triggered = comm.bcast(early_stopping_triggered, root=0)
+        if early_stopping_triggered:
             break
 
-        # Adapt mutation probability
+        if rank != 0:
+            continue
+
         curr_mutation_prob = mutation_prob * (1 - generation / num_generations)
 
-        # Create new generation
         next_population = [copy.deepcopy(ind) for ind in elites]
 
         while len(next_population) < population_size:
@@ -106,9 +105,10 @@ def run_evolution_parallel(
 
         population = next_population
 
+    population = evaluate_population_parallel(population, config_data, comm)
+    comm.Barrier()
     if rank == 0:
         print("Evolution finished.")
-
-    # Final evaluation before return
-    population = evaluate_population_parallel(population, config_data, comm)
-    return population
+        return population
+    else:
+        return None

@@ -1,23 +1,19 @@
 from mpi4py import MPI
 import sys
 import time
-from genetic.evolution import run_evolution
 from genetic.evolution_parallel import run_evolution_parallel
 from inout.parser import parse_input_file
 from genetic.operators import initialize_population
 from visualization.gui import preview
 
-NUM_GENERATIONS = 100
-POPULATION_SIZE = 500
+NUM_GENERATIONS = 200
+POPULATION_SIZE = 50
 TOURNAMENT_SIZE = 4
 CROSSOVER_PROB = 0.8
 MUTATION_PROB = 0.6
 
 
 def main():
-    """
-    Main function to run the genetic algorithm optimization.
-    """
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
 
@@ -25,23 +21,21 @@ def main():
     config_data = parse_input_file(input_filepath)
     building_constraints = config_data["building_constraints"]
 
-    if not config_data:
-        if rank == 0:
-            print("Error: Could not load configuration data. Exiting.")
-        sys.exit(1)
-
+    population = None
     if rank == 0:
+        if not config_data:
+            print("Error: Could not load configuration data. Exiting.")
+            sys.exit(1)
+
         print("Configuration loaded successfully")
         print("Initializing population")
 
-    population = initialize_population(config_data, POPULATION_SIZE, building_constraints)
+        population = initialize_population(config_data, POPULATION_SIZE, building_constraints)
 
-    if not population:
-        if rank == 0:
+        if not population:
             print("Population initialisation failed")
-        sys.exit(2)
-    else:
-        if rank == 0:
+            sys.exit(2)
+        else:
             print("Population successfully initialised")
 
     start_time = 0
@@ -58,6 +52,9 @@ def main():
         MUTATION_PROB
     )
 
+    if final_population is None:
+        return
+
     if rank == 0:
         end_time = time.time()
         elapsed_time = end_time - start_time
@@ -66,7 +63,6 @@ def main():
         best_individual = max(final_population, key=lambda individual: individual.fitness)
         preview(best_individual, building_constraints)
 
-    MPI.Finalize()
 
 if __name__ == "__main__":
     main()
