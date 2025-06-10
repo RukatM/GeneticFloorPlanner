@@ -1,14 +1,16 @@
 from mpi4py import MPI
 import sys
 import time
+
+from genetic.evaluator import calculate_fitness
 from genetic.evolution_parallel import run_evolution_parallel
 from inout.parser import parse_input_file
 from genetic.operators import initialize_population
 from visualization.gui import preview
 
 NUM_GENERATIONS = 500
-POPULATION_SIZE = 150
-TOURNAMENT_SIZE = 4
+POPULATION_SIZE = 500
+TOURNAMENT_SIZE = 6
 CROSSOVER_PROB = 0.8
 MUTATION_PROB = 0.6
 
@@ -62,6 +64,7 @@ def main():
         print(f"\nEvolution completed in {elapsed_time:.2f} seconds")
 
         best_individual = max(final_population, key=lambda individual: individual.fitness)
+        calculate_fitness(best_individual, config_data, debug=True)
         preview(best_individual, building_constraints, entrances)
 
 

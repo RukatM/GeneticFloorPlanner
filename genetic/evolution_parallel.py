@@ -6,7 +6,7 @@ import random
 from genetic.evaluator import calculate_fitness
 from genetic.operators import tournament_selection, crossover, mutate
 
-STAGNATION_NUM = 20
+STAGNATION_NUM = 30
 
 
 def evaluate_population_parallel(population, config_data, comm):
