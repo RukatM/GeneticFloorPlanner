@@ -6,8 +6,8 @@ from inout.parser import parse_input_file
 from genetic.operators import initialize_population
 from visualization.gui import preview
 
-NUM_GENERATIONS = 200
-POPULATION_SIZE = 50
+NUM_GENERATIONS = 500
+POPULATION_SIZE = 150
 TOURNAMENT_SIZE = 4
 CROSSOVER_PROB = 0.8
 MUTATION_PROB = 0.6
@@ -20,6 +20,7 @@ def main():
     input_filepath = "data/building_example.json"
     config_data = parse_input_file(input_filepath)
     building_constraints = config_data["building_constraints"]
+    entrances = config_data["entrances"]
 
     population = None
     if rank == 0:
@@ -61,7 +62,7 @@ def main():
         print(f"\nEvolution completed in {elapsed_time:.2f} seconds")
 
         best_individual = max(final_population, key=lambda individual: individual.fitness)
-        preview(best_individual, building_constraints)
+        preview(best_individual, building_constraints, entrances)
 
 
 if __name__ == "__main__":
