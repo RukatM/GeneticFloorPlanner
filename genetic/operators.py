@@ -126,7 +126,7 @@ def mutate(individual, mutation_prob, building_outline):
 
             elif mutation_type == 'size':
                 dim_to_change = random.choice(['width', 'height'])
-                change = random.choice([-1, 1])
+                change = random.choice([-2, 2])
 
                 if dim_to_change == 'width':
                     chromosome.width = max(1, chromosome.width + change)

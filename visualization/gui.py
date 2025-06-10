@@ -11,10 +11,11 @@ from PyQt5.QtGui import QPolygonF
 from PyQt5.QtCore import QPointF
 
 class BuildingWidget(QWidget):
-    def __init__(self, individual, building_outline, parent=None):
+    def __init__(self, individual, building_outline, entrances=None, parent=None):
         super().__init__(parent)
         self.individual = individual
         self.outline = building_outline
+        self.entrances = entrances if entrances else []
         self.setMinimumSize(400, 400)
 
     def paintEvent(self, event):
@@ -61,51 +62,26 @@ class BuildingWidget(QWidget):
             painter.setPen(Qt.black)
             painter.drawText(rect_x + 5, rect_y + 15, room.room_type)
 
+        painter.setBrush(QColor(0, 255, 0))  # Zielony kolor
+        painter.setPen(QPen(Qt.darkGreen, 2))
+
+        for entrance in self.entrances:
+            x = entrance['x'] * scale
+            y = entrance['y'] * scale
+            size = 6
+            painter.drawEllipse(QPointF(x, y), size, size)
+
 
 class MainWindow(QMainWindow):
-    def __init__(self, individual, outline):
+    def __init__(self, individual, outline, entrances):
         super().__init__()
         self.setWindowTitle("Building Layout Visualization")
-        self.setCentralWidget(BuildingWidget(individual, outline))
+        self.setCentralWidget(BuildingWidget(individual, outline, entrances))
 
 
-def preview(individual, building_outline):
+def preview(individual, building_outline, entrances):
     app = QApplication(sys.argv)
 
-    # building_outline = [
-    #     {'x': 1, 'y': 1},
-    #     {'x': 20, 'y': 1},
-    #     {'x': 20, 'y': 15},
-    #     {'x': 10, 'y': 15},
-    #     {'x': 10, 'y': 25},
-    #     {'x': 1, 'y': 25},
-    # ]
-
-    window = MainWindow(individual, building_outline)
+    window = MainWindow(individual, building_outline, entrances)
     window.show()
     sys.exit(app.exec_())
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-
-    rooms = [
-        Chromosome("Living Room", 2, 2, 6, 5),
-        Chromosome("Kitchen", 9, 2, 4, 4),
-        Chromosome("Bedroom", 2, 8, 5, 5),
-        Chromosome("Bathroom", 8, 9, 3, 3),
-    ]
-    layout = Individual(chromosomes=rooms, fitness=0.85)
-
-    building_outline = [
-        {'x': 1, 'y': 1},
-        {'x': 20, 'y': 1},
-        {'x': 20, 'y': 15},
-        {'x': 10, 'y': 15},
-        {'x': 10, 'y': 25},
-        {'x': 1, 'y': 25},
-    ]
-
-    window = MainWindow(layout, building_outline)
-    window.show()
-    sys.exit(app.exec_())
-
