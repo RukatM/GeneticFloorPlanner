@@ -6,6 +6,8 @@ import random
 from genetic.evaluator import calculate_fitness
 from genetic.operators import tournament_selection, crossover, mutate
 
+STAGNATION_NUM = 20
+
 
 def evaluate_population_parallel(population, config_data, comm):
     rank = comm.Get_rank()
@@ -66,7 +68,7 @@ def run_evolution_parallel(
             avg_fitness = sum(ind.fitness for ind in population) / len(population)
             print(f"Generation {generation + 1}: avg = {avg_fitness:.4f}, best = {population[0].fitness:.4f}")
 
-            if stagnation_counter >= int(num_generations * early_stopping_rounds_fraction):
+            if stagnation_counter >= STAGNATION_NUM:
                 early_stopping_triggered = True
                 print(f"Early stopping at generation {generation + 1} due to stagnation.")
 
