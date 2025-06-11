@@ -5,3 +5,4 @@ PyQt5_sip==12.17.0
 matplotlib~=3.10.3
 shapely~=2.1.1
 numpy~=2.3.0
+networkx~=3.5
