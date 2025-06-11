@@ -43,7 +43,9 @@ def run_evolution(comm, params):
         params["population_size"],
         params["tournament_size"],
         params["crossover_prob"],
-        params["mutation_prob"]
+        params["mutation_prob"],
+        comm,
+        debug=True
     )
 
     if final_population is None:
