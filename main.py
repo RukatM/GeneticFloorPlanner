@@ -1,6 +1,3 @@
-import random
-
-import numpy as np
 from mpi4py import MPI
 import sys
 import time
@@ -9,7 +6,7 @@ from genetic.evaluator import calculate_fitness
 from genetic.evolution_parallel import run_evolution_parallel
 from inout.parser import parse_input_file
 from genetic.operators import initialize_population
-from visualization.gui import preview
+from visualization.renderer import preview
 
 NUM_GENERATIONS = 300
 POPULATION_SIZE = 250

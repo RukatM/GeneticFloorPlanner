@@ -140,4 +140,3 @@ def mutate(individual, mutation_prob, building_outline):
             if not building_polygon.contains(rect):
                 chromosome.x, chromosome.y = original_x, original_y
                 chromosome.width, chromosome.height = original_width, original_height
-
