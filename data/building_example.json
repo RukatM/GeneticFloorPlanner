@@ -7,9 +7,6 @@
         {"x": 10, "y": 25},
         {"x": 1, "y": 25}
     ],
-    "entrances": [
-        {"x": 10, "y": 1} 
-    ],
     "corridor_width":  1,
     "rooms": [
         { "type": "classroom", "min_area": 30, "count": 3},
@@ -20,7 +17,9 @@
     ],
     "adjacency_requirements": [
         ["classroom", "toilet"],
-        ["office", "toilet"],
-        ["secretary", "classroom"]
+        ["office", "toilet"]
+    ],
+    "separation_requirements": [
+        ["toilet", "toilet"]
     ]
 }
