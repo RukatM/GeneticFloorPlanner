@@ -40,7 +40,6 @@ def run_evolution_parallel(
     crossover_prob,
     mutation_prob,
     elite_fraction=0.02,
-    early_stopping_rounds_fraction=0.15
 ):
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
@@ -79,8 +78,6 @@ def run_evolution_parallel(
         if rank != 0:
             continue
 
-        curr_mutation_prob = mutation_prob * (1 - generation / num_generations)
-
         next_population = [copy.deepcopy(ind) for ind in elites]
 
         while len(next_population) < population_size:
@@ -98,8 +95,8 @@ def run_evolution_parallel(
                 child1 = copy.deepcopy(parent1)
                 child2 = copy.deepcopy(parent2)
 
-            mutate(child1, curr_mutation_prob, config_data['building_constraints'])
-            mutate(child2, curr_mutation_prob, config_data['building_constraints'])
+            mutate(child1, mutation_prob, config_data['building_constraints'])
+            mutate(child2, mutation_prob, config_data['building_constraints'])
 
             next_population.append(child1)
             if len(next_population) < population_size:
