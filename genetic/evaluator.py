@@ -30,7 +30,7 @@ def penalize_area(chromosomes, min_area: Dict[str, float]) -> float:
         if required > 0:
             actual = room.get_area()
             shortfall = max(0, (required - actual) / required)
-            penalty -= shortfall * 300
+            penalty -= shortfall * 400
     return penalty
 
 
@@ -51,7 +51,7 @@ def compute_adjacency_score(chromosomes, room_centers, adjacency_requirements: L
 
         if rooms1 and rooms2:
             min_dist = min(
-                math.hypot(room_centers[r1][0] - room_centers[r2][0], [r1][1] - room_centers[r2][1])
+                math.hypot(room_centers[r1][0] - room_centers[r2][0], room_centers[r1][1] - room_centers[r2][1])
                 for r1 in rooms1 for r2 in rooms2
             )
             if min_dist <= 1:
@@ -63,19 +63,30 @@ def compute_adjacency_score(chromosomes, room_centers, adjacency_requirements: L
     return score
 
 
-def penalize_dispersion(chromosomes, room_centers) -> float:
-    grouped_types = {'sypialnia', 'łazienka'}
-    grouped_rooms = [r for r in chromosomes if r.room_type in grouped_types]
-    if len(grouped_rooms) < 2:
-        return 0.0
+def compute_separation_score(chromosomes, room_centers, separation_requirements: List[Tuple[str, str]]) -> float:
+    score = 0.0
+    for type1, type2 in separation_requirements:
+        rooms1 = [r for r in chromosomes if r.room_type == type1]
+        rooms2 = [r for r in chromosomes if r.room_type == type2]
 
-    dist_sum = sum(
-        math.hypot(room_centers[r1][0] - room_centers[r2][0],
-                   room_centers[r1][1] - room_centers[r2][1])
-        for r1, r2 in combinations(grouped_rooms, 2)
-    )
-    avg_dist = dist_sum / len(grouped_rooms)
-    return -(avg_dist - 10) * 10 if avg_dist > 10 else 0.0
+        distances = []
+        for r1 in rooms1:
+            for r2 in rooms2:
+                dist = math.hypot(
+                    room_centers[r1][0] - room_centers[r2][0],
+                    room_centers[r1][1] - room_centers[r2][1]
+                )
+                distances.append(dist)
+
+        if distances:
+            avg_dist = sum(distances) / len(distances)
+            if avg_dist <= 1:
+                score -= 30
+            elif avg_dist <= 3:
+                score -= 10
+            else:
+                score += (avg_dist - 3) * 5
+    return score
 
 
 def compute_usage_score(chromosomes, building_poly: Polygon) -> float:
@@ -127,17 +138,25 @@ def compute_shared_wall_score(room_pairs, room_boxes, corridor_width: float) -> 
 
 def calculate_corridor_connectivity_score(room_boxes: Dict, building_poly: Polygon) -> float:
     corridor_area = building_poly.difference(unary_union(list(room_boxes.values())))
+
     if corridor_area.is_empty:
         return -500
 
     corridor_polygons = list(corridor_area.geoms) if corridor_area.geom_type == 'MultiPolygon' else [corridor_area]
+    num_corridors = len(corridor_polygons)
+
     room_corridor_map = {}
+    rooms_without_corridor = 0
 
     for room, room_box in room_boxes.items():
+        connected = False
         for i, corridor in enumerate(corridor_polygons):
             if room_box.exterior.intersects(corridor):
                 room_corridor_map[room] = i
+                connected = True
                 break
+        if not connected:
+            rooms_without_corridor += 1
 
     G = nx.Graph()
     G.add_nodes_from(room_boxes.keys())
@@ -146,10 +165,42 @@ def calculate_corridor_connectivity_score(room_boxes: Dict, building_poly: Polyg
         if room_corridor_map.get(r1) == room_corridor_map.get(r2):
             G.add_edge(r1, r2)
 
-    if nx.is_connected(G):
-        return 100
+    if len(G.nodes) > 0:
+        num_components = nx.number_connected_components(G)
     else:
-        return -100 * (len(list(nx.connected_components(G))) - 1)
+        num_components = len(room_boxes)
+
+    disconnected_penalty = -75 * (num_components - 1)
+    dead_corridor_penalty = -150 * (num_corridors - 1)
+    orphan_room_penalty = -100 * rooms_without_corridor
+
+    final_score = disconnected_penalty + dead_corridor_penalty + orphan_room_penalty
+    return final_score
+
+
+def reward_straight_corridors(room_boxes: Dict, building_poly: Polygon) -> float:
+    corridor_area = building_poly.difference(unary_union(list(room_boxes.values())))
+    if corridor_area.is_empty:
+        return 0
+
+    corridors = list(corridor_area.geoms) if corridor_area.geom_type == 'MultiPolygon' else [corridor_area]
+    score = 0.0
+
+    for corridor in corridors:
+        minx, miny, maxx, maxy = corridor.bounds
+        bbox_area = (maxx - minx) * (maxy - miny)
+        actual_area = corridor.area
+
+        rect_ratio = actual_area / bbox_area if bbox_area > 0 else 0
+
+        if actual_area < 5:
+            score += 10
+        if rect_ratio > 0.85:
+            score += 50 * rect_ratio
+        else:
+            score -= (1 - rect_ratio) * 50
+
+    return score
 
 
 def calculate_fitness(individual, config_data, debug=False) -> float:
@@ -160,7 +211,9 @@ def calculate_fitness(individual, config_data, debug=False) -> float:
     room_boxes = {room: get_room_box(room) for room in chromosomes}
     room_centers = {room: get_room_center(room) for room in chromosomes}
     room_pairs = list(combinations(chromosomes, 2))
+
     adjacency_requirements = config_data.get('adjacency_requirements', [])
+    separation_requirements = config_data.get('separation_requirements', [])
     corridor_width = config_data.get("corridor_width", 1.0)
 
     scores = {
@@ -168,12 +221,13 @@ def calculate_fitness(individual, config_data, debug=False) -> float:
         '2. area_penalty': penalize_area(chromosomes, min_area),
         '3. boundary_penalty': penalize_boundary(room_boxes, building_poly),
         '4. adjacency_score': compute_adjacency_score(chromosomes, room_centers, adjacency_requirements),
-        '5. dispersion_penalty': penalize_dispersion(chromosomes, room_centers),
+        '5. separation_score': compute_separation_score(chromosomes, room_centers, separation_requirements),
         '6. usage_score': compute_usage_score(chromosomes, building_poly),
         '7. wall_contact_score': compute_wall_contact_score(room_boxes, building_poly),
         '8. aspect_penalty': penalize_aspect_ratio(chromosomes),
         '9. shared_wall_score': compute_shared_wall_score(room_pairs, room_boxes, corridor_width),
         '10. corridor_connectivity_score': calculate_corridor_connectivity_score(room_boxes, building_poly),
+        '11. straight_corridor_score': reward_straight_corridors(room_boxes, building_poly),
     }
 
     if debug:
