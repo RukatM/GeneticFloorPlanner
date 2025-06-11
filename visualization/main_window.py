@@ -1,21 +1,19 @@
-import sys
 import os
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                             QSpinBox, QDoubleSpinBox, QPushButton, QSlider, QFileDialog, 
-                             QMessageBox)
+from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSpinBox, QDoubleSpinBox, QPushButton, QSlider, QFileDialog, QMessageBox
 from PyQt5.QtCore import Qt
 
-# PRZYWRÓCONO: Import widżetu do rysowania budynku
+from runner.runner import run_evolution
 from .renderer import BuildingWidget
 
+
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, comm):
         super().__init__()
         self.setWindowTitle("Genetic Floor Planner")
         self.setGeometry(100, 100, 1200, 800)
 
+        self.comm = comm
         self.params = None
-        # ZMIANA: Brak domyślnej ścieżki. Na starcie nie mamy wybranego pliku.
         self.config_file_path = None
 
         main_widget = QWidget()
@@ -33,15 +31,15 @@ class MainWindow(QMainWindow):
         bottom_bar = self._create_bottom_bar()
         main_layout.addWidget(bottom_bar)
 
-        self.start_button.clicked.connect(self.start_and_get_params)
+        self.start_button.clicked.connect(self.start)
         self.choose_file_button.clicked.connect(self.open_file_dialog)
+
 
     def _create_top_bar(self):
         top_panel = QWidget()
         top_layout = QVBoxLayout(top_panel)
         top_panel.setStyleSheet("background-color: #333; color: white;")
         
-        # ... (sekcja z parametrami algorytmu - bez zmian)
         params_layout = QHBoxLayout()
         self.params_widgets = {} 
         pop_label = QLabel("Population Size:")
@@ -68,7 +66,6 @@ class MainWindow(QMainWindow):
         top_layout.addLayout(params_layout)
 
         controls_layout = QHBoxLayout()
-        # ZMIANA: Etykieta na starcie jest pusta. Wypełni się po wyborze pliku.
         self.file_label = QLabel("")
         self.choose_file_button = QPushButton("Choose File")
         self.start_button = QPushButton("Start Evolution")
@@ -79,9 +76,9 @@ class MainWindow(QMainWindow):
         controls_layout.addStretch(); top_layout.addLayout(controls_layout)
 
         return top_panel
-        
+
+
     def _create_bottom_bar(self):
-        # ... (bez zmian)
         bottom_panel = QWidget()
         bottom_panel.setStyleSheet("background-color: #333; color: white;")
         bottom_layout = QHBoxLayout(bottom_panel)
@@ -92,33 +89,41 @@ class MainWindow(QMainWindow):
         bottom_layout.addSpacing(20)
         return bottom_panel
 
+
     def open_file_dialog(self):
-        # ... (bez zmian)
         options = QFileDialog.Options()
         filePath, _ = QFileDialog.getOpenFileName(self, "Wybierz plik konfiguracyjny", "", "JSON Files (*.json);;All Files (*)", options=options)
         if filePath:
             self.config_file_path = filePath
-            self.file_label.setText(f"Wybrany plik: {os.path.basename(filePath)}") # ZMIANA: Lepszy tekst
+            self.file_label.setText(f"Wybrany plik: {os.path.basename(filePath)}")
             print(f"Wybrano nowy plik konfiguracyjny: {self.config_file_path}")
 
-    def start_and_get_params(self):
-        # ZMIANA: Sprawdzamy, czy plik został wybrany
+
+    def start(self):
         if not self.config_file_path:
-            # Jeśli nie, pokazujemy błąd i przerywamy
             QMessageBox.warning(self, "Brak pliku", "Proszę wybrać plik konfiguracyjny przed rozpoczęciem ewolucji.")
             return
 
-        # Reszta funkcji wykonuje się tylko, jeśli plik jest wybrany
         self.params = {
             key: widget.value() for key, widget in self.params_widgets.items()
         }
-        self.params['terminate'] = False
+
         self.params['config_file'] = self.config_file_path
-        print(f"Parametry zebrane w GUI: {self.params}")
-        self.close()
+
+        size = self.comm.Get_size()
+
+        for worker in range(1, size):
+            self.comm.send("START", dest=worker, tag=900)
+
+        run_evolution(self.comm, self.params)
+
 
     def get_params(self):
-        """
-        Zwraca zebrane parametry.
-        """
         return self.params
+
+
+    def closeEvent(self, a0):
+        size = self.comm.Get_size()
+
+        for worker in range(1, size):
+            self.comm.send("STOP", dest=worker, tag=900)
