@@ -5,7 +5,11 @@ from genetic.operators import initialize_population
 from inout.parser import parse_input_file
 
 
-def run_evolution(comm, params):
+def run_evolution(comm, params, debug=False):
+    """
+    Runs the parallel genetic algorithm using MPI.
+    """
+
     rank = comm.Get_rank()
     config_data = None
     params = comm.bcast(params, root=0)
@@ -22,14 +26,15 @@ def run_evolution(comm, params):
 
     population = None
     if rank == 0:
-        print("Configuration loaded successfully")
-        print("Initializing population")
+        if debug:
+            print("Configuration loaded successfully")
+            print("Initializing population")
         population = initialize_population(config_data, params["population_size"], building_constraints)
 
         if not population:
             print("Population initialisation failed")
             comm.Abort()
-        else:
+        elif debug:
             print("Population successfully initialised")
 
     start_time = 0
@@ -51,7 +56,7 @@ def run_evolution(comm, params):
     if final_population is None:
         return None
 
-    if rank == 0:
+    if rank == 0 and debug:
         end_time = time.time()
         elapsed_time = end_time - start_time
         print(f"\nEvolution completed in {elapsed_time:.2f} seconds")

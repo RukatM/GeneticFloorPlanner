@@ -9,6 +9,10 @@ STAGNATION_NUM = 50
 
 
 def evaluate_population_parallel(population, config_data, comm):
+    """
+    Evaluates fitness of the population in parallel using MPI.
+    """
+
     rank = comm.Get_rank()
     size = comm.Get_size()
 
@@ -39,6 +43,10 @@ def generate_next_population_parallel(
     elite_fraction,
     comm
 ):
+    """
+    Generates the next population using selection, crossover, and mutation in parallel.
+    """
+
     rank = comm.Get_rank()
     size = comm.Get_size()
 
@@ -98,6 +106,10 @@ def run_evolution_parallel(
     elite_fraction=0.02,
     debug = False
 ):
+    """
+    Runs the full evolutionary loop in parallel.
+    """
+
     rank = comm.Get_rank()
     random.seed(42 + rank)
 
@@ -109,7 +121,7 @@ def run_evolution_parallel(
 
     population = comm.bcast(population, root=0)
 
-    if rank == 0:
+    if rank == 0 and debug:
         print("Starting parallel evolution...")
 
     for generation in range(num_generations):

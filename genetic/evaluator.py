@@ -6,15 +6,19 @@ from shapely.geometry import Polygon, box
 from shapely.ops import unary_union
 
 
-def get_room_box(room) -> Polygon:
+def get_room_box(room):
     return box(room.x, room.y, room.x + room.width, room.y + room.height)
 
 
-def get_room_center(room) -> Tuple[float, float]:
+def get_room_center(room):
     return room.x + room.width / 2, room.y + room.height / 2
 
 
-def penalize_overlaps(room_pairs, room_boxes) -> float:
+def penalize_overlaps(room_pairs, room_boxes):
+    """
+    Penalizes overlapping rooms – the larger the overlap area, the greater the penalty.
+    """
+
     penalty = 0.0
     for r1, r2 in room_pairs:
         overlap = room_boxes[r1].intersection(room_boxes[r2]).area
@@ -23,7 +27,11 @@ def penalize_overlaps(room_pairs, room_boxes) -> float:
     return penalty
 
 
-def penalize_area(chromosomes, min_area: Dict[str, float]) -> float:
+def penalize_area(chromosomes, min_area: Dict[str, float]):
+    """
+    Penalizes rooms that do not meet their minimum required area.
+    """
+
     penalty = 0.0
     for room in chromosomes:
         required = min_area.get(room.room_type, 0)
@@ -34,7 +42,11 @@ def penalize_area(chromosomes, min_area: Dict[str, float]) -> float:
     return penalty
 
 
-def penalize_boundary(room_boxes: Dict, building_poly: Polygon) -> float:
+def penalize_boundary(room_boxes: Dict, building_poly: Polygon):
+    """
+    Penalizes rooms that extend beyond the boundaries of the building.
+    """
+
     penalty = 0.0
     for room_box in room_boxes.values():
         if not building_poly.covers(room_box):
@@ -43,7 +55,11 @@ def penalize_boundary(room_boxes: Dict, building_poly: Polygon) -> float:
     return penalty
 
 
-def compute_adjacency_score(chromosomes, room_centers, adjacency_requirements: List[Tuple[str, str]]) -> float:
+def compute_adjacency_score(chromosomes, room_centers, adjacency_requirements: List[Tuple[str, str]]):
+    """
+    Rewards rooms that are close to each other when adjacency is required.
+    """
+
     score = 0.0
     for type1, type2 in adjacency_requirements:
         rooms1 = [r for r in chromosomes if r.room_type == type1]
@@ -63,7 +79,11 @@ def compute_adjacency_score(chromosomes, room_centers, adjacency_requirements: L
     return score
 
 
-def compute_separation_score(chromosomes, room_centers, separation_requirements: List[Tuple[str, str]]) -> float:
+def compute_separation_score(chromosomes, room_centers, separation_requirements: List[Tuple[str, str]]):
+    """
+    Penalizes rooms that are too close when separation is required.
+    """
+
     score = 0.0
     for type1, type2 in separation_requirements:
         rooms1 = [r for r in chromosomes if r.room_type == type1]
@@ -89,7 +109,11 @@ def compute_separation_score(chromosomes, room_centers, separation_requirements:
     return score
 
 
-def compute_usage_score(chromosomes, building_poly: Polygon) -> float:
+def compute_usage_score(chromosomes, building_poly: Polygon):
+    """
+    Evaluates how efficiently the building area is utilized by the rooms.
+    """
+
     total_area = sum(room.get_area() for room in chromosomes)
     building_area = building_poly.area
     usage_ratio = total_area / building_area if building_area > 0 else 0
@@ -101,6 +125,10 @@ def compute_usage_score(chromosomes, building_poly: Polygon) -> float:
 
 
 def compute_wall_contact_score(room_boxes: Dict, building_poly: Polygon) -> float:
+    """
+    Rewards rooms that have direct contact with the building's external walls.
+    """
+
     score = 0.0
     for room_box in room_boxes.values():
         contact_length = room_box.intersection(building_poly.exterior).length
@@ -110,6 +138,10 @@ def compute_wall_contact_score(room_boxes: Dict, building_poly: Polygon) -> floa
 
 
 def penalize_aspect_ratio(chromosomes) -> float:
+    """
+    Penalizes rooms with poor aspect ratios (too long or too narrow).
+    """
+
     penalty = 0.0
     for room in chromosomes:
         if room.width > 0 and room.height > 0:
@@ -120,6 +152,10 @@ def penalize_aspect_ratio(chromosomes) -> float:
 
 
 def compute_shared_wall_score(room_pairs, room_boxes, corridor_width: float) -> float:
+    """
+    Rewards rooms that share walls, especially if they are directly adjacent or within corridor width.
+    """
+
     score = 0.0
     for r1, r2 in room_pairs:
         box1, box2 = room_boxes[r1], room_boxes[r2]
@@ -137,6 +173,10 @@ def compute_shared_wall_score(room_pairs, room_boxes, corridor_width: float) -> 
 
 
 def calculate_corridor_connectivity_score(room_boxes: Dict, building_poly: Polygon) -> float:
+    """
+    Scores the connectivity of rooms via corridors, penalizing disconnected or isolated layouts.
+    """
+
     corridor_area = building_poly.difference(unary_union(list(room_boxes.values())))
 
     if corridor_area.is_empty:
@@ -179,6 +219,10 @@ def calculate_corridor_connectivity_score(room_boxes: Dict, building_poly: Polyg
 
 
 def reward_straight_corridors(room_boxes: Dict, building_poly: Polygon) -> float:
+    """
+    Rewards straight and efficient corridor shapes based on their rectangularity.
+    """
+
     corridor_area = building_poly.difference(unary_union(list(room_boxes.values())))
     if corridor_area.is_empty:
         return 0
@@ -203,7 +247,11 @@ def reward_straight_corridors(room_boxes: Dict, building_poly: Polygon) -> float
     return score
 
 
-def calculate_fitness(individual, config_data, debug=False) -> float:
+def calculate_fitness(individual, config_data, debug=False):
+    """
+    Calculates the overall fitness score of a room layout based on spatial and design constraints.
+    """
+
     chromosomes = individual.chromosomes
     min_area = {r['type']: r.get('min_area', 0) for r in config_data.get('rooms', [])}
     building_poly = Polygon([(p['x'], p['y']) for p in config_data.get('building_constraints', [])])
