@@ -115,7 +115,8 @@ class MainWindow(QMainWindow):
         for worker in range(1, size):
             self.comm.send("START", dest=worker, tag=900)
 
-        run_evolution(self.comm, self.params)
+        hall_of_fame = run_evolution(self.comm, self.params)
+        print(hall_of_fame)
 
 
     def get_params(self):

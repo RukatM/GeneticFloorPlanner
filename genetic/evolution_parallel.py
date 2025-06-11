@@ -6,7 +6,7 @@ import random
 from genetic.evaluator import calculate_fitness
 from genetic.operators import tournament_selection, crossover, mutate
 
-STAGNATION_NUM = 30
+STAGNATION_NUM = 50
 
 
 def evaluate_population_parallel(population, config_data, comm):
@@ -40,7 +40,6 @@ def run_evolution_parallel(
     crossover_prob,
     mutation_prob,
     elite_fraction=0.02,
-    early_stopping_rounds_fraction=0.15
 ):
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
@@ -48,6 +47,8 @@ def run_evolution_parallel(
     best_fitness = float('-inf')
     stagnation_counter = 0
     early_stopping_triggered = False
+
+    hall_of_fame = []
 
     if rank == 0:
         print("Starting parallel evolution...")
@@ -57,6 +58,7 @@ def run_evolution_parallel(
 
         if rank == 0:
             population.sort(key=lambda ind: ind.fitness, reverse=True)
+            hall_of_fame.append(copy.deepcopy(population[0]))
             elites = population[:max(1, int(elite_fraction * population_size))]
 
             if population[0].fitness > best_fitness:
@@ -111,6 +113,7 @@ def run_evolution_parallel(
     comm.Barrier()
     if rank == 0:
         print("Evolution finished.")
-        return population
+        hall_of_fame.append(copy.deepcopy(population[0]))
+        return population, hall_of_fame
     else:
-        return None
+        return None, None

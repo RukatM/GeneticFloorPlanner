@@ -36,7 +36,7 @@ def run_evolution(comm, params):
     if rank == 0:
         start_time = time.time()
 
-    final_population = run_evolution_parallel(
+    final_population, hall_of_fame = run_evolution_parallel(
         population,
         config_data,
         params["num_generations"],
@@ -47,7 +47,7 @@ def run_evolution(comm, params):
     )
 
     if final_population is None:
-        return
+        return None
 
     if rank == 0:
         end_time = time.time()
@@ -56,3 +56,5 @@ def run_evolution(comm, params):
 
         best_individual = max(final_population, key=lambda individual: individual.fitness)
         print(best_individual)
+
+    return hall_of_fame
