@@ -46,7 +46,12 @@ def generate_next_population_parallel(
         global_population.sort(key=lambda ind: ind.fitness, reverse=True)
         num_elites = max(1, int(elite_fraction * population_size))
         elites = [copy.deepcopy(ind) for ind in global_population[:num_elites]]
-        population_split = np.array_split(global_population, size)
+
+        indices = np.random.permutation(len(global_population))
+        buckets = [[] for _ in range(size)]
+        for i, idx in enumerate(indices):
+            buckets[i % size].append(global_population[idx])
+        population_split = buckets
     else:
         elites = None
         population_split = None
