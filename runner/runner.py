@@ -1,6 +1,6 @@
 import time
 
-from genetic.evolution_parallel import run_evolution_parallel
+from genetic.evolution import run_evolution_parallel
 from genetic.operators import initialize_population
 from inout.parser import parse_input_file
 
