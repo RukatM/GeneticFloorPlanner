@@ -65,23 +65,17 @@ class BuildingWidget(QWidget):
         painter.setBrush(QColor(0, 255, 0))  # Zielony kolor
         painter.setPen(QPen(Qt.darkGreen, 2))
 
-        for entrance in self.entrances:
-            x = entrance['x'] * scale
-            y = entrance['y'] * scale
-            size = 6
-            painter.drawEllipse(QPointF(x, y), size, size)
-
 
 class MainWindow(QMainWindow):
-    def __init__(self, individual, outline, entrances):
+    def __init__(self, individual, outline):
         super().__init__()
         self.setWindowTitle("Building Layout Visualization")
-        self.setCentralWidget(BuildingWidget(individual, outline, entrances))
+        self.setCentralWidget(BuildingWidget(individual, outline))
 
 
-def preview(individual, building_outline, entrances):
+def preview(individual, building_outline):
     app = QApplication(sys.argv)
 
-    window = MainWindow(individual, building_outline, entrances)
+    window = MainWindow(individual, building_outline)
     window.show()
     sys.exit(app.exec_())

@@ -1,3 +1,6 @@
+import random
+
+import numpy as np
 from mpi4py import MPI
 import sys
 import time
@@ -8,8 +11,8 @@ from inout.parser import parse_input_file
 from genetic.operators import initialize_population
 from visualization.gui import preview
 
-NUM_GENERATIONS = 200
-POPULATION_SIZE = 100
+NUM_GENERATIONS = 300
+POPULATION_SIZE = 250
 TOURNAMENT_SIZE = 6
 CROSSOVER_PROB = 0.8
 MUTATION_PROB = 0.6
@@ -22,7 +25,6 @@ def main():
     input_filepath = "data/building_example.json"
     config_data = parse_input_file(input_filepath)
     building_constraints = config_data["building_constraints"]
-    entrances = config_data["entrances"]
 
     population = None
     if rank == 0:
@@ -67,7 +69,7 @@ def main():
 
         best_individual = max(final_population, key=lambda individual: individual.fitness)
         calculate_fitness(best_individual, config_data, debug=True)
-        preview(best_individual, building_constraints, entrances)
+        preview(best_individual, building_constraints)
 
 
 if __name__ == "__main__":
