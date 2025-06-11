@@ -106,6 +106,7 @@ def mutate(individual, mutation_prob, building_outline):
     """
     Performs mutation on an individual, ensuring chromosomes stay within the building shape.
     """
+
     building_polygon = Polygon([(p['x'], p['y']) for p in building_outline])
 
     for chromosome in individual.chromosomes:
