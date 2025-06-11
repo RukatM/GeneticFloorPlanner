@@ -22,6 +22,9 @@ class BuildingWidget(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
 
+        if not self.individual:
+            return
+
         if not self.individual.chromosomes:
             return
 
