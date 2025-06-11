@@ -52,7 +52,9 @@ def main():
         POPULATION_SIZE,
         TOURNAMENT_SIZE,
         CROSSOVER_PROB,
-        MUTATION_PROB
+        MUTATION_PROB,
+        comm,
+        debug=True
     )
 
     if final_population is None:
