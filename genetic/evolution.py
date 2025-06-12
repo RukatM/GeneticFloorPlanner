@@ -143,7 +143,7 @@ def run_evolution_parallel(
             if debug:
                 print(f"Generation {generation + 1}: avg = {avg_fitness:.4f}, best = {current_best:.4f}")
 
-            if stagnation_counter >= STAGNATION_NUM:
+            if stagnation_counter >= STAGNATION_NUM and early_stopping:
                 print(f"Early stopping at generation {generation + 1} due to stagnation.")
                 early_stopping_triggered = True
 

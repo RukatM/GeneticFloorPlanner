@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
         pop_label = QLabel("Population Size:")
         pop_widget = QSpinBox()
         pop_widget.setRange(10, 10000)
-        pop_widget.setValue(500)
+        pop_widget.setValue(400)
         pop_widget.setMinimumWidth(60)
         self.params_widgets["population_size"] = pop_widget
         params_layout.addWidget(pop_label)
@@ -62,7 +62,7 @@ class MainWindow(QMainWindow):
         gen_label = QLabel("Number of Generations:")
         gen_widget = QSpinBox()
         gen_widget.setRange(1, 10000)
-        gen_widget.setValue(500)
+        gen_widget.setValue(300)
         gen_widget.setMinimumWidth(60)
         self.params_widgets["num_generations"] = gen_widget
         params_layout.addWidget(gen_label)
@@ -72,7 +72,7 @@ class MainWindow(QMainWindow):
         tour_label = QLabel("Tournament Size:")
         tour_widget = QSpinBox()
         tour_widget.setRange(2, 20)
-        tour_widget.setValue(6)
+        tour_widget.setValue(4)
         tour_widget.setMinimumWidth(60)
         self.params_widgets["tournament_size"] = tour_widget
         params_layout.addWidget(tour_label)
@@ -82,7 +82,7 @@ class MainWindow(QMainWindow):
         cross_label = QLabel("Crossover Probability:")
         cross_widget = QDoubleSpinBox()
         cross_widget.setRange(0.0, 1.0)
-        cross_widget.setSingleStep(0.05)
+        cross_widget.setSingleStep(0.04)
         cross_widget.setValue(0.8)
         cross_widget.setMinimumWidth(60)
         self.params_widgets["crossover_prob"] = cross_widget
@@ -93,7 +93,7 @@ class MainWindow(QMainWindow):
         mut_label = QLabel("Mutation Probability:")
         mut_widget = QDoubleSpinBox()
         mut_widget.setRange(0.0, 1.0)
-        mut_widget.setSingleStep(0.05)
+        mut_widget.setSingleStep(0.4)
         mut_widget.setValue(0.6)
         mut_widget.setMinimumWidth(60)
         self.params_widgets["mutation_prob"] = mut_widget
