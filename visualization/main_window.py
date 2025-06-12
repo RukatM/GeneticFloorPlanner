@@ -4,7 +4,7 @@ from PyQt5.QtCore import Qt
 
 from runner.runner import run_evolution
 from .renderer import BuildingWidget
-
+from inout.parser import parse_input_file
 
 class MainWindow(QMainWindow):
     def __init__(self, comm):
@@ -15,6 +15,8 @@ class MainWindow(QMainWindow):
         self.comm = comm
         self.params = None
         self.config_file_path = None
+        self.config_data = None
+        self.history = []
 
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
@@ -32,7 +34,8 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(bottom_bar)
 
         self.start_button.clicked.connect(self.start)
-        self.choose_file_button.clicked.connect(self.open_file_dialog)
+        self.choose_file_button.clicked.connect(self.open_file)
+        self.iter_slider.valueChanged.connect(self.on_slider_change)
 
 
     def _create_top_bar(self):
@@ -83,6 +86,7 @@ class MainWindow(QMainWindow):
         bottom_panel.setStyleSheet("background-color: #333; color: white;")
         bottom_layout = QHBoxLayout(bottom_panel)
         self.iter_slider = QSlider(Qt.Horizontal); self.iter_label = QLabel("Generation: 0")
+        self.iter_slider.setEnabled(False)
         self.save_button = QPushButton("Save Result")
         bottom_layout.addSpacing(20); bottom_layout.addWidget(self.iter_slider, 1) 
         bottom_layout.addWidget(self.iter_label); bottom_layout.addWidget(self.save_button)
@@ -90,14 +94,27 @@ class MainWindow(QMainWindow):
         return bottom_panel
 
 
-    def open_file_dialog(self):
+    def open_file(self):
         options = QFileDialog.Options()
         filePath, _ = QFileDialog.getOpenFileName(self, "Wybierz plik konfiguracyjny", "", "JSON Files (*.json);;All Files (*)", options=options)
         if filePath:
             self.config_file_path = filePath
             self.file_label.setText(f"Wybrany plik: {os.path.basename(filePath)}")
+            self.config_data = parse_input_file(self.config_file_path)
+            self.building_widget.update_plan(
+                None, 
+                self.config_data["building_constraints"], 
+            )
             print(f"Wybrano nowy plik konfiguracyjny: {self.config_file_path}")
 
+    def on_slider_change(self, value):
+        if self.history and 0 <= value < len(self.history):
+            individual_to_show = self.history[value]
+            self.building_widget.update_plan(
+                individual_to_show, 
+                self.config_data["building_constraints"], 
+            )
+            self.iter_label.setText(f"Generation: {value}")
 
     def start(self):
         if not self.config_file_path:
@@ -109,15 +126,20 @@ class MainWindow(QMainWindow):
         }
 
         self.params['config_file'] = self.config_file_path
+        self.config_data = parse_input_file(self.config_file_path)
 
         size = self.comm.Get_size()
 
         for worker in range(1, size):
             self.comm.send("START", dest=worker, tag=900)
 
-        hall_of_fame = run_evolution(self.comm, self.params)
-        print(hall_of_fame)
+        self.history = run_evolution(self.comm, self.params)
 
+        if self.history:
+            self.iter_slider.setRange(0, len(self.history) - 1)
+            self.iter_slider.setValue(len(self.history) - 1)
+            self.iter_slider.setEnabled(True)
+            self.on_slider_change(len(self.history) - 1)
 
     def get_params(self):
         return self.params
