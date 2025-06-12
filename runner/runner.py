@@ -16,7 +16,7 @@ def run_evolution(comm, params, debug=False):
 
     if rank == 0:
         input_filepath = params['config_file']
-        config_data = parse_input_file(input_filepath)
+        config_data, error_msg = parse_input_file(input_filepath)
         if not config_data:
             print("Error: Could not load configuration data. Exiting.")
             comm.Abort()
@@ -49,6 +49,7 @@ def run_evolution(comm, params, debug=False):
         params["tournament_size"],
         params["crossover_prob"],
         params["mutation_prob"],
+        params["early_stopping"],
         comm,
         debug=True
     )

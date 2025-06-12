@@ -1,25 +1,35 @@
 import json
 
-
 def parse_input_file(filepath):
     """
     Loads and parses a JSON configuration file.
     """
 
+    REQUIRED_KEYS = ["building_constraints", "corridor_width", "rooms", "adjacency_requirements", "separation_requirements"]
+
     try:
         with open(filepath, "r", encoding="utf-8") as file:
-            # TODO validation
+            first_char = file.read(1)
+            if not first_char:
+                return None, f"Configuration file is empty: {filepath}"
+            file.seek(0)
+
             data = json.load(file)
-            return data
+
+            if not data:
+                return None, f"JSON data is empty in file: {filepath}"
+
+            for key in REQUIRED_KEYS:
+                if key not in data:
+                    return None, f"Missing required key '{key}' in file: {filepath}"
+            
+            return data, None
 
     except FileNotFoundError:
-        print(f"Error: File not found at {filepath}")
-        return None
+        return None, f"File not found at '{filepath}'"
 
     except json.JSONDecodeError:
-        print(f"Error: Could not decode JSON from {filepath}.")
-        return None
+        return None, f"Could not decode JSON from '{filepath}'."
 
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        return None
+        return None, f"An unexpected error occurred while parsing '{filepath}': {e}"

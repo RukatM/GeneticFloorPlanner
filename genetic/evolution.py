@@ -5,7 +5,7 @@ import random
 from genetic.evaluator import calculate_fitness
 from genetic.operators import tournament_selection, crossover, mutate
 
-STAGNATION_NUM = 50
+STAGNATION_NUM = 10
 
 
 def evaluate_population_parallel(population, config_data, comm):
@@ -102,6 +102,7 @@ def run_evolution_parallel(
     tournament_size,
     crossover_prob,
     mutation_prob,
+    early_stopping,
     comm,
     elite_fraction=0.02,
     debug = False
@@ -147,7 +148,7 @@ def run_evolution_parallel(
                 early_stopping_triggered = True
 
         early_stopping_triggered = comm.bcast(early_stopping_triggered, root=0)
-        if early_stopping_triggered:
+        if early_stopping and early_stopping_triggered:
             break
 
         population = generate_next_population_parallel(

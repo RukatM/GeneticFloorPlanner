@@ -14,12 +14,20 @@ class BuildingWidget(QWidget):
         self.setMinimumSize(400, 400)
 
     def update_plan(self, individual, building_outline, entrances=None):
+        """
+        Updates the widget with a new floor plan
+        """
+
         self.individual = individual
         self.outline = building_outline
         self.entrances = entrances if entrances else []
         self.update()
 
     def paintEvent(self, event):
+        """
+        Handles the painting of the widget.
+        """
+        
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
 
@@ -61,7 +69,6 @@ class BuildingWidget(QWidget):
         x_offset = (widget_width - scaled_plan_width) / 2
         y_offset = (widget_height - scaled_plan_height) / 2
         
-        # Rysuj tło – zarys budynku (to się teraz wykona zawsze, gdy jest obrys)
         painter.setPen(QPen(Qt.gray, 2, Qt.DashLine))
         painter.setBrush(QColor(230, 230, 230))
         
@@ -74,7 +81,6 @@ class BuildingWidget(QWidget):
         polygon = QPolygonF(polygon_points)
         painter.drawPolygon(polygon)
 
-        # ZMIANA: Rysuj pokoje tylko wtedy, gdy istnieje `individual` i ma chromosomy
         if self.individual and self.individual.chromosomes:
             for room in self.individual.chromosomes:
                 color = QColor.fromHsv(hash(room.room_type) % 360, 255, 200)
